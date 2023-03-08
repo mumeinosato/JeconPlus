@@ -24,7 +24,7 @@ class VaultEconomy implements Economy {
 
     @PackagePrivate
     VaultEconomy(MainConfig config, UUIDRegistry registry, BalanceRepository repository) {
-        this.init(config, registry, registry);
+        this.init(config, registry, repository);
     }
 
     @PackagePrivate
@@ -41,7 +41,7 @@ class VaultEconomy implements Economy {
 
     @Override
     public String getName() {
-        return "Jeco";
+        return "Jecon";
     }
 
     @Override

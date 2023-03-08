@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -38,7 +39,7 @@ public class VersionChecker {
             return;
         }
 
-        Plugin plugin = JeconPlus.getInstance()
+        Plugin plugin = JeconPlus.getInstance();
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             nextCheck = CHECK_PERIOD + System.currentTimeMillis();
             UpdateChecker.LatestVersion latest = checker.callEx();
@@ -52,13 +53,12 @@ public class VersionChecker {
                     .put("old", currentVersion)
                     .put("new", latest.version)
                     .put("url", latest.url);
-            result = Stream.concat(
+            result = Arrays.toString(Stream.concat(
                     Stream.of(MessageConfig.HEADER),
-                    message.newVersion.stream().map(parser -> parser.toString(variable)
-                    ).toArray(String[]::new);
+                    message.newVersion.stream().map(parser -> parser.toString(variable))
+            ).toArray(String[]::new));
 
-                    sender.sendMessage(result);
-            )
+            sender.sendMessage(result);
         });
     }
 }

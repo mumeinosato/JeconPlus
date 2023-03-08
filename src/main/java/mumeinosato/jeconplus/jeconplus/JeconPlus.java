@@ -38,15 +38,18 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.EventListener;
+import org.bukkit.event.Listener;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class JeconPlus extends JavaPlugin {
+public class JeconPlus extends JavaPlugin {
     private static JeconPlus instance = null;
+
     private ConfigLoader config;
     private BalanceRepository repository;
     private VaultEconomy economy;
+
+    // Stack(LIFO)
     private final Deque<Runnable> destructor = new ArrayDeque<>();
 
     @Override
@@ -61,7 +64,7 @@ public final class JeconPlus extends JavaPlugin {
         MainConfig main = config.getMainConfig();
         MessageConfig message = config.getMessageConfig();
 
-        UUIDRegistry registry = UUIDRegistry.getSharedCacheRegistry(this)
+        UUIDRegistry registry = UUIDRegistry.getSharedCacheRegistry(this);
 
         VersionChecker checker = new VersionChecker(main.versionCheck, message);
         BukkitTask task = getServer().getScheduler().runTaskLater(
@@ -70,11 +73,15 @@ public final class JeconPlus extends JavaPlugin {
         );
         destructor.addFirst(task::cancel);
 
+        // connect db
         Database db = Database.connect(main.database);
         destructor.addFirst(db::close);
 
+        // methods for internal use.
         Consumer<UUID> consistency;
         Consumer<UUID> save;
+        Runnable saveAll;
+        // init repository
         if (main.lazyWrite) {
             LazyRepository lazy = new LazyRepository(main, db);
             repository = lazy;
@@ -82,7 +89,7 @@ public final class JeconPlus extends JavaPlugin {
             consistency = lazy::consistency;
             save = lazy::save;
             saveAll = lazy::saveAll;
-        }else {
+        } else {
             repository = new SyncRepository(main, db);
 
             consistency = u -> {};
@@ -94,6 +101,7 @@ public final class JeconPlus extends JavaPlugin {
             repository = null;
         });
 
+        // register vault
         if (economy == null) {
             Plugin vault = getServer().getPluginManager().getPlugin("Vault");
             if (vault != null) {
@@ -106,10 +114,14 @@ public final class JeconPlus extends JavaPlugin {
         } else {
             economy.init(main, registry, repository);
         }
+
+        // register events
         getServer().getPluginManager().registerEvents(
                 new EventListener(main, checker, repository, consistency, save), this
         );
         destructor.addFirst(() -> HandlerList.unregisterAll(this));
+
+        // register commands
         SubExecutor.Builder builder = SubExecutor.Builder.init()
                 .setDefaultCommand("show")
                 .putCommand("show", new Show(message, registry, repository))
@@ -126,7 +138,7 @@ public final class JeconPlus extends JavaPlugin {
         Help help = new Help(message, builder.getSubCommands());
         builder.setErrorExecutor(help).putCommand("help", help);
 
-        PluginCommand cmd = getCommand("jecon")+
+        PluginCommand cmd = getCommand("jecon");
         SubExecutor subExecutor = builder.register(cmd);
         destructor.addFirst(() -> {
             cmd.setTabCompleter(this);
@@ -151,11 +163,30 @@ public final class JeconPlus extends JavaPlugin {
         }
     }
 
-    public  static  JeconPlus getInstance(){return instance;}
-    public BalanceRepository getRepository() {return repository;}
-    private  static  class  VaultRegister implements Listener {
+    /**
+     * Get Jecon instance
+     *
+     * @return Jecon
+     */
+    public static JeconPlus getInstance() {
+        return instance;
+    }
+
+    /**
+     * Get BalanceRepository
+     *
+     * @return BalanceRepository
+     */
+    public BalanceRepository getRepository() {
+        return repository;
+    }
+
+    private static class VaultRegister implements Listener {
         private final UUIDRegistry registry;
-        private VaultRegister(UUIDRegistry registry) {this.registry = registry;}
+
+        private VaultRegister(UUIDRegistry registry) {
+            this.registry = registry;
+        }
 
         @EventHandler(ignoreCancelled = true)
         public void onPluginEnable(PluginEnableEvent e) {
