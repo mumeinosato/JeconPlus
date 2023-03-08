@@ -1,0 +1,4 @@
+name: JeconPlus
+version: '${project.version}'
+main: mumeinosato.jeconplus.jeconplus.JeconPlus
+api-version: 1.19
