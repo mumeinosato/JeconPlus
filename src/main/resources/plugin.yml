@@ -2,3 +2,65 @@ name: JeconPlus
 version: '${project.version}'
 main: mumeinosato.jeconplus.jeconplus.JeconPlus
 api-version: 1.19
+loadbefore: ["Vault"]
+
+commands:
+  jecon:
+    description: "/jecon help - Show helps."
+    aliases: "money"
+
+permissions:
+  jecon.*:
+    children:
+      jecon.show: true
+      jecon.pay: true
+      jecon.show.other: true
+      jecon.set: true
+      jecon.give: true
+      jecon.take: true
+      jecon.create: true
+      jecon.remove: true
+      jecon.top: true
+      jecon.convert: true
+      jecon.reload: true
+      jecon.version: true
+  jecon.user:
+    children:
+      jecon.show: true
+      jecon.pay: true
+  jecon.op:
+    children:
+      jecon.show.other: true
+      jecon.set: true
+      jecon.give: true
+      jecon.take: true
+      jecon.create: true
+      jecon.remove: true
+      jecon.top: true
+      jecon.convert: true
+      jecon.reload: true
+      jecon.version: true
+  jecon.show:
+    default: true
+  jecon.pay:
+    default: true
+  jecon.show.other:
+    default: op
+  jecon.set:
+    default: op
+  jecon.give:
+    default: op
+  jecon.take:
+    default: op
+  jecon.create:
+    default: op
+  jecon.remove:
+    default: op
+  jecon.top:
+    default: op
+  jecon.convert:
+    default: op
+  jecon.reload:
+    default: op
+  jecon.version:
+    default: op
